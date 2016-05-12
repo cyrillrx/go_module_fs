@@ -1,31 +1,45 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"encoding/json"
 	"os"
 )
 
 func main() {
 
-	args := os.Args[1:]
-	var path string
-	if len(args) > 0 {
-		path = args[0]
+	path := path(os.Args)
+
+	l := ls(path)
+
+	prettyPrint(l)
+}
+
+func path(args []string) string {
+
+	if len(args) > 1 {
+		return args[1]
 	} else {
-		path = "./"
+		return "./"
 	}
+}
+
+func ls(path string) []File {
 
 	var output []File
 
 	files, _ := ioutil.ReadDir(path)
 	for _, f := range files {
 		output = append(output, makeFile(f))
-		fmt.Println(f.Name())
 	}
 
-	b, err := json.MarshalIndent(output, "", "    ")
+	return output
+}
+
+func prettyPrint(v interface{}) {
+
+	b, err := json.MarshalIndent(v, "", "    ")
 	if err != nil {
 		fmt.Println("error:", err)
 	}

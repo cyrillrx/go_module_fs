@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 )
@@ -22,4 +24,22 @@ func makeFile(src os.FileInfo) File {
 	f.IsDir = src.IsDir()
 
 	return f
+}
+
+func (f File) Print() {
+
+	b, err := json.Marshal(f)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	os.Stdout.Write(b)
+}
+
+func (f File) PrettyPrint() {
+
+	b, err := json.MarshalIndent(f, "", "    ")
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	os.Stdout.Write(b)
 }
