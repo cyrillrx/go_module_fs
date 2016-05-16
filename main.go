@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,17 +10,26 @@ import (
 
 func main() {
 
-	path := path(os.Args)
+	// Handles exe flags
+	ppArg := flag.String("p", "inline", "true to pretty print, false to inline")
+	//json := *flag.String("f", "json", "json or raw") == "json"
 
-	l := ls(path)
+	flag.Parse()
+	args := flag.Args()
 
-	prettyPrint(l)
+	path := path(args)
+
+	// List files
+	files := ls(path)
+
+	pp := *ppArg == "pretty"
+	jsonPrint(files, pp)
 }
 
 func path(args []string) string {
 
-	if len(args) > 1 {
-		return args[1]
+	if len(args) > 0 {
+		return args[0]
 	} else {
 		return "./"
 	}
@@ -29,7 +39,12 @@ func ls(path string) []File {
 
 	var output []File
 
-	files, _ := ioutil.ReadDir(path)
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		fmt.Println("error:", err)
+		return nil
+	}
+
 	for _, f := range files {
 		output = append(output, makeFile(f))
 	}
@@ -37,11 +52,20 @@ func ls(path string) []File {
 	return output
 }
 
-func prettyPrint(v interface{}) {
+func jsonPrint(v interface{}, pretty bool) {
 
-	b, err := json.MarshalIndent(v, "", "    ")
+	b, err := serialize(v, pretty)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 	os.Stdout.Write(b)
+}
+
+func serialize(v interface{}, pretty bool) ([]byte, error) {
+
+	if pretty {
+		return json.MarshalIndent(v, "", "    ")
+	} else {
+		return json.Marshal(v)
+	}
 }
